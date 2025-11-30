@@ -9,7 +9,7 @@ use tokio::time::{Duration, sleep};
 
 #[tokio::main]
 async fn main() {
-    let crypto = Crypto::new();
+    let crypto = Crypto::load_or_create();
     let publisher = Publisher::new("https://example.com/status/sparrow");
 
     let message = "All systems chirping normally.";
