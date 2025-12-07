@@ -1,6 +1,7 @@
 mod canary;
 mod crypto;
 mod publisher;
+mod config;
 
 use canary::Canary;
 use crypto::Crypto;

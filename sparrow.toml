@@ -1,0 +1,9 @@
+interval_hours = 24
+
+output_path = "public/sparrow-song.json"
+message_normal = "All systems chirping normally :)"
+message_overdue = "The nest has gone quiet :("
+
+# Optional https publishing
+publish_url = "https://example.com/webhook/sparrow"
+publish_token = "s3cr3t-t0k3n"
