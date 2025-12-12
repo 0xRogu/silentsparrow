@@ -10,7 +10,7 @@ homepage = "https://github.com/0xRogu/silent-sparrow"
 repository = "https://github.com/0xRogu/silent-sparrow"
 license = "MPL-2.0"
 keywords = ["status", "beacon", "crypto", "ed25519", "transparency"]
-categories = ["command-line-utilies", "cryptography", "development-tools"]
+categories = ["command-line-utilities", "cryptography", "development-tools"]
 include = [
     "**/*.rs",
     "Cargo.toml",
