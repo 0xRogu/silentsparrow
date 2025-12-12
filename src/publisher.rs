@@ -24,8 +24,8 @@ impl HttpsPublisher {
 
     pub async fn publish(&self, json_payload: &str) -> Result<(), String> {
         let mut request = self.client.post(&self.url).body(json_payload.to_owned());
-        if let Some(token) = &self.auth_token{
-            request = request.header("Authorixation", format!("Bearer {}", token));
+        if let Some(token) = &self.auth_token {
+            request = request.header("Authorization", format!("Bearer {}", token));
         }
         let response = request
             .send()
@@ -33,7 +33,11 @@ impl HttpsPublisher {
             .map_err(|e| format!("Request failed: {}", e))?;
         match response.status() {
             StatusCode::OK | StatusCode::CREATED | StatusCode::NO_CONTENT => Ok(()),
-            status => Err(format!("Server returned {}: {}", status, response.text().await.unwrap_or_default())),
+            status => Err(format!(
+                "Server returned {}: {}",
+                status,
+                response.text().await.unwrap_or_default()
+            )),
         }
     }
 }

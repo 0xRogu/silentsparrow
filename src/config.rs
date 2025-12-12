@@ -35,7 +35,7 @@ impl Config {
             let content = std::fs::read_to_string(path)
                 .map_err(|e| format!("Failed to read config file: {}", e))?;
             let mut config: Config =
-                toml::from_str(&content).map_err(|e| format!("Invalid TOML in config: {}" e))?;
+                toml::from_str(&content).map_err(|e| format!("Invalid TOML in config: {}", e))?;
             if config.interval_hours == 0 {
                 config.interval_hours = default_interval_hours();
             }

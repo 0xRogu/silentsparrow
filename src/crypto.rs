@@ -41,7 +41,7 @@ impl Crypto {
     }
 
     fn key_path() -> PathBuf {
-        let proj_dirs = ProjectDirs::from("org", "silent-sparrow", "Silent Sparrow")
+        let proj_dirs = ProjectDirs::from("0xRogu", "silent-sparrow", "Silent Sparrow")
             .expect("Unable to determine config directory");
         let config_dir = proj_dirs.config_dir();
 
