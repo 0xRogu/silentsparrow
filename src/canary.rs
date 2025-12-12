@@ -26,10 +26,9 @@ pub struct Canary {
 impl Canary {
     pub fn new(config: Config) -> Self {
         let crypto = Crypto::load_or_create();
-        let publisher = config
-            .publish_url
-            .as_ref()
-            .map(|url| HttpsPublisher::new(url.clone(), config.publish_token.clone()));
+        let publisher = config.publish_url.as_ref().map(|url| {
+            HttpsPublisher::new(url.clone(), config.publish_token.clone())
+        });
         let last_update = Self::read_last_timestamp(&config.output_path);
         Self {
             config,
@@ -75,7 +74,9 @@ impl Canary {
 
         let to_sign = format!(
             "{}\n{}\n{}",
-            payload.timestamp, payload.message, payload.public_key,
+            payload.timestamp,
+            payload.message,
+            payload.public_key,
         );
 
         let signature_bytes = self.crypto.sign(to_sign.as_bytes());
@@ -87,10 +88,9 @@ impl Canary {
 
         self.atomic_write_to_disk(&json)?;
 
-        if let Some(publisher) = &self.publisher {
-            if let Err(e) = publisher.publish(&json).await {
-                eprintln!("Warning: HTTPS publish failed: {e}");
-            }
+        if let Some(publisher) = &self.publisher
+            && let Err(e) = publisher.publish(&json).await {
+            eprintln!("Warning: HTTPS publish failed: {e}");
         }
 
         self.last_update = Some(now);
@@ -102,7 +102,8 @@ impl Canary {
         let tmp_path = path.with_extension("tmp");
         fs::write(&tmp_path, content)
             .map_err(|e| format!("Failed to write temporary file: {e}"))?;
-        fs::rename(&tmp_path, path).map_err(|e| format!("Atomic rename failed: {e}"))?;
+        fs::rename(&tmp_path, path)
+            .map_err(|e| format!("Atomic rename failed: {e}"))?;
         Ok(())
     }
 }

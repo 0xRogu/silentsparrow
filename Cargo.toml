@@ -1,6 +1,6 @@
 [package]
 name = "silent-sparrow"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2024"
 authors = ["0xRogu <me@rogu.wtf>"]
 description = "A minimal, scheduled, cryptographically signed status beacon."

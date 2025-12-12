@@ -1,5 +1,4 @@
 use reqwest::{Client, StatusCode};
-use serde_json::json;
 use std::time::Duration;
 
 #[derive(Debug, Clone)]

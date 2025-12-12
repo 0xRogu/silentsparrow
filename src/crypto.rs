@@ -31,6 +31,7 @@ impl Crypto {
             crypto
         }
     }
+
     fn new() -> Self {
         let signing_key = SigningKey::generate(&mut OsRng);
         let verifying_key = signing_key.verifying_key();
@@ -41,7 +42,7 @@ impl Crypto {
     }
 
     fn key_path() -> PathBuf {
-        let proj_dirs = ProjectDirs::from("0xRogu", "silent-sparrow", "Silent Sparrow")
+        let proj_dirs = ProjectDirs::from("org", "silent-sparrow", "Silent Sparrow")
             .expect("Unable to determine config directory");
         let config_dir = proj_dirs.config_dir();
 
@@ -61,8 +62,5 @@ impl Crypto {
     pub fn public_key_hex(&self) -> String {
         hex::encode(self.verifying_key.to_bytes())
     }
-
-    pub fn verifying_key(&self) -> VerifyingKey {
-        self.verifying_key
-    }
 }
+

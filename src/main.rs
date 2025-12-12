@@ -6,7 +6,6 @@ mod publisher;
 use canary::Canary;
 use config::Config;
 use std::path::PathBuf;
-use tokio::time::{Duration, sleep};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
