@@ -63,4 +63,3 @@ impl Crypto {
         hex::encode(self.verifying_key.to_bytes())
     }
 }
-
