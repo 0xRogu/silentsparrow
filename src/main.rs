@@ -4,42 +4,36 @@ mod publisher;
 mod config;
 
 use canary::Canary;
-use crypto::Crypto;
-use publisher::Publisher;
+use config::Config;
+use std::path::PathBuf;
 use tokio::time::{Duration, sleep};
 
 #[tokio::main]
-async fn main() {
-    let crypto = Crypto::load_or_create();
-    let publisher = Publisher::new("https://example.com/status/sparrow");
-
-    let message = "All systems chirping normally.";
-    let signature_bytes = crypto.sign(message);
-    let canary = Canary::new(message, &signature_bytes, None);
-
-    match canary.to_json() {
-        Ok(json) => {
-            println!("Generated Canary:\n{}", json);
-            println!("Public Key: {}", crypto.public_key_hex());
-
-            if let Err(e) = publisher.publish(&json).await {
-                eprintln!("Failed to publish canary: {}", e);
-            }
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config_path = std::env::args()
+        .find(|arg| arg.starts_with("--config="))
+        .and_then(|arg| arg.strip_prefix("--config=").map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("sparrow.toml"));
+    let config = Config::load_or_default(&config_path)
+        .map_err(|e| format!("Failed to load config: {}", e))?;
+        println!("Silent Sparrow started - updating every {} hour(s)", config.interval_hours);
+        println!("Output file: {}", config.output_path);
+        if config.publish_url.is_some() {
+            println!("HTTPS publishing enabled");
         }
-        Err(e) => eprintln!("Failed to serialize canary: {}", e),
+    let mut canary = Canary::new(config.clone());
+    if let Err(e) = canary.refresh().await {
+        eprintln!("Initial refresh failed: {}", e);
+    } else {
+        println!("Initial sparrow song written");
     }
+    let mut interval = tokio::time::interval(config.interval_duration());
     loop {
-        sleep(Duration::from_secs(10)).await;
-        let new_signature = crypto.sign(message);
-        let new_canary = Canary::new(message, &new_signature, None);
-        match new_canary.to_json() {
-            Ok(json) => {
-                println!("Updated Canary: \n{}", json);
-                if let Err(e) = publisher.publish(&json).await {
-                    eprintln!("Failed to publish canary: {}", e);
-                }
-            }
-            Err(e) => eprintln!("Failed to serialize canary: {}", e),
+        interval.tick().await;
+        if let Err(e) = canary.refresh().await {
+            eprintln!("Scheduled refresh failed: {}", e);
+        } else {
+            println!("Scheduled update completed at {}", chrono::Utc::now().to_rfc3339());
         }
     }
 }
