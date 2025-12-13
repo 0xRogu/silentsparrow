@@ -1,7 +1,8 @@
+// src/bin/watchdog.rs - Monitors the canary and updates message if stale
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tokio::time::{Duration, sleep};
 
 #[derive(Serialize, Deserialize)]
@@ -14,8 +15,54 @@ struct SparrowSong {
     log_hash: Option<String>,
 }
 
+#[derive(Deserialize, Clone)]
+struct Config {
+    pub interval_hours: u64,
+    #[serde(default = "default_message_normal")]
+    pub message_normal: String,
+    #[serde(default = "default_message_overdue")]
+    pub message_overdue: String,
+}
+
+fn default_message_normal() -> String {
+    "All systems chirping normally:)".to_string()
+}
+fn default_message_overdue() -> String {
+    "The nest has gone quiet:(".to_string()
+}
+
+impl Config {
+    fn load_or_default(path: &Path) -> Result<Self, String> {
+        if path.exists() {
+            let content = std::fs::read_to_string(path)
+                .map_err(|e| format!("Failed to read config file: {}", e))?;
+            toml::from_str(&content).map_err(|e| format!("Invalid TOML in config: {}", e))
+        } else {
+            Ok(Config {
+                interval_hours: 24,
+                message_normal: default_message_normal(),
+                message_overdue: default_message_overdue(),
+            })
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    let config_path = std::env::args()
+        .find(|arg| arg.starts_with("--config="))
+        .and_then(|arg| arg.strip_prefix("--config=").map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("sparrow.toml"));
+
+    let config = Config::load_or_default(&config_path).unwrap_or_else(|e| {
+        eprintln!("Warning: Failed to load config ({}), using defaults", e);
+        Config {
+            interval_hours: 24,
+            message_normal: default_message_normal(),
+            message_overdue: default_message_overdue(),
+        }
+    });
+
     let canary_path = std::env::args()
         .nth(1)
         .unwrap_or_else(|| "sparrow-song.json".to_string());
@@ -23,7 +70,7 @@ async fn main() {
     let max_age_hours: i64 = std::env::args()
         .nth(2)
         .and_then(|s| s.parse().ok())
-        .unwrap_or(25); // Slightly longer than normal interval
+        .unwrap_or((config.interval_hours + 1) as i64); // Default: interval + 1 hour
 
     let check_interval_secs: u64 = std::env::args()
         .nth(3)
@@ -35,16 +82,18 @@ async fn main() {
         canary_path, check_interval_secs
     );
     println!("Will mark as overdue if older than {} hours", max_age_hours);
+    println!("Normal message: {}", config.message_normal);
+    println!("Overdue message: {}", config.message_overdue);
 
     loop {
-        if let Err(e) = check_and_update(&canary_path, max_age_hours).await {
+        if let Err(e) = check_and_update(&canary_path, max_age_hours, &config).await {
             eprintln!("Watchdog error: {}", e);
         }
         sleep(Duration::from_secs(check_interval_secs)).await;
     }
 }
 
-async fn check_and_update(path: &str, max_age_hours: i64) -> Result<(), String> {
+async fn check_and_update(path: &str, max_age_hours: i64, config: &Config) -> Result<(), String> {
     // Read current canary
     let content =
         fs::read_to_string(path).map_err(|e| format!("Failed to read canary file: {}", e))?;
@@ -65,13 +114,13 @@ async fn check_and_update(path: &str, max_age_hours: i64) -> Result<(), String> 
 
     // Determine what the message should be
     let expected_message = if is_stale {
-        "The nest has gone quiet:("
+        &config.message_overdue
     } else {
-        "All systems chirping normally:)"
+        &config.message_normal
     };
 
     // Only update if the message is wrong
-    if song.message != expected_message {
+    if song.message != *expected_message {
         song.message = expected_message.to_string();
 
         // Note: Signature is now invalid, but that's OK - this is an emergency update
