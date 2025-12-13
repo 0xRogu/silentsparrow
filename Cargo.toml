@@ -1,6 +1,6 @@
 [package]
 name = "silent-sparrow"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 authors = ["0xRogu <me@rogu.wtf>"]
 description = "A minimal, scheduled, cryptographically signed status beacon."
@@ -21,6 +21,10 @@ include = [
 [[bin]]
 name = "silent-sparrow"
 path = "src/main.rs"
+
+[[bin]]
+name = "sparrow-watchdog"
+path = "src/bin/watchdog.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }

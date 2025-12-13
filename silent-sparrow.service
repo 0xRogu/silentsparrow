@@ -1,0 +1,11 @@
+[Unit]
+Description=Silent Sparrow Canary
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/sparrow --config=/etc/silent-sparrow/sparrow.toml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

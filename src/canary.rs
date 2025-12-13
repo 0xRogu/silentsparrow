@@ -53,21 +53,11 @@ impl Canary {
 
     pub async fn refresh(&mut self) -> Result<(), String> {
         let now = Utc::now();
-        let message = if let Some(last) = self.last_update {
-            let interval = chrono::Duration::from_std(self.config.interval_duration())
-                .map_err(|e| format!("Duration conversion failed: {}", e))?;
-            if now.signed_duration_since(last) > interval {
-                self.config.message_overdue.clone()
-            } else {
-                self.config.message_normal.clone()
-            }
-        } else {
-            self.config.message_normal.clone()
-        };
 
+        // Always write normal message - watchdog will change it if we stop updating
         let payload = SparrowSong {
             timestamp: now.to_rfc3339(),
-            message,
+            message: self.config.message_normal.clone(),
             signature: String::new(),
             public_key: self.crypto.public_key_hex(),
             log_hash: None,

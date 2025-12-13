@@ -1,0 +1,11 @@
+[Unit]
+Description=Silent Sparrow Watchdog
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/sparrow-watchdog /var/lib/silent-sparrow/sparrow-song.json 25 300
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
