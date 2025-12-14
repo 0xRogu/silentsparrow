@@ -1,8 +1,8 @@
-// src/bin/watchdog.rs - Monitors the canary and updates message if stale
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use silent_sparrow::Config;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tokio::time::{Duration, sleep};
 
 #[derive(Serialize, Deserialize)]
@@ -13,38 +13,6 @@ struct SparrowSong {
     public_key: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     log_hash: Option<String>,
-}
-
-#[derive(Deserialize, Clone)]
-struct Config {
-    pub interval_hours: u64,
-    #[serde(default = "default_message_normal")]
-    pub message_normal: String,
-    #[serde(default = "default_message_overdue")]
-    pub message_overdue: String,
-}
-
-fn default_message_normal() -> String {
-    "All systems chirping normally:)".to_string()
-}
-fn default_message_overdue() -> String {
-    "The nest has gone quiet:(".to_string()
-}
-
-impl Config {
-    fn load_or_default(path: &Path) -> Result<Self, String> {
-        if path.exists() {
-            let content = std::fs::read_to_string(path)
-                .map_err(|e| format!("Failed to read config file: {}", e))?;
-            toml::from_str(&content).map_err(|e| format!("Invalid TOML in config: {}", e))
-        } else {
-            Ok(Config {
-                interval_hours: 24,
-                message_normal: default_message_normal(),
-                message_overdue: default_message_overdue(),
-            })
-        }
-    }
 }
 
 #[tokio::main]
@@ -58,8 +26,11 @@ async fn main() {
         eprintln!("Warning: Failed to load config ({}), using defaults", e);
         Config {
             interval_hours: 24,
-            message_normal: default_message_normal(),
-            message_overdue: default_message_overdue(),
+            output_path: "sparrow-song.json".to_string(),
+            message_normal: "All systems chirping normally:)".to_string(),
+            message_overdue: "The nest has gone quiet:(".to_string(),
+            publish_url: None,
+            publish_token: None,
         }
     });
 

@@ -18,6 +18,10 @@ include = [
     "LICENSE",
 ]
 
+[lib]
+name = "silent_sparrow"
+path = "src/lib.rs"
+
 [[bin]]
 name = "silent-sparrow"
 path = "src/main.rs"
