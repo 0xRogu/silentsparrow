@@ -2,6 +2,7 @@ use serde::Deserialize;
 use std::path::Path;
 use std::time::Duration;
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub interval_hours: u64,
@@ -10,7 +11,7 @@ pub struct Config {
     #[serde(default = "default_message_normal")]
     pub message_normal: String,
     #[serde(default = "default_message_overdue")]
-    pub message_overdue: String,
+    pub message_overdue: String, // Used by watchdog binary
     pub publish_url: Option<String>,
     pub publish_token: Option<String>,
 }

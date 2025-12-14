@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use silent_sparrow::Config;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::time::{Duration, sleep};
 
 #[derive(Serialize, Deserialize)]
