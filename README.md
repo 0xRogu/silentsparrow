@@ -94,7 +94,7 @@ cargo install silent-sparrow
 ### From source
 
 ```bash
-git clone https://github.com/yourusername/silentsparrow.git
+git clone https://github.com/0xRogu/silentsparrow.git
 cd silentsparrow
 cargo build --release
 ```
